@@ -104,7 +104,7 @@ MultiDb <- function(dbType=NULL, graphInfo, ns=NULL, ...){
           obj <- loadDb(resources[i])
           assign(name,value=obj)
       }
-      if(class(obj)=='TxDb'){txdb <- obj} ## stash it if it's a TxDb
+      if(is(obj, 'TxDb')){txdb <- obj} ## stash it if it's a TxDb
   }
   
   ## Then make the object.

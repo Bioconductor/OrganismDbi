@@ -51,7 +51,7 @@ setMethod("TxDb", "OrganismDb", function(x, ...){.getTxDb(x)})
     ## Here I need to work out what needs an update and update it...
     ## I need to find the TxDb in the object and replace it with
     ## the one in value
-    if(class(value) != 'TxDb') stop('Replacement value must be a TxDb object.')
+    if(is(value, 'TxDb')) stop('Replacement value must be a TxDb object.')
     
     ## 1st get the current TxDbs name
     txDbName <- OrganismDbi:::.lookupDbNameFromKeytype(x, 'TXID')
