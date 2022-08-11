@@ -105,12 +105,13 @@
 ## test keys for graphData BEFORE we make any objects (which just
 ## means that we are not going to use data from the @resources slot
 ## for this function)
-.testKeys <- function(fkeys){
-  pkgs <- unlist(lapply(names(fkeys), get))
-  res <- logical(length(pkgs))
-  for(i in seq_len(length(pkgs))){
-    res[i] <- fkeys[i] %in% columns(pkgs[[i]])
-  }
+.testKeys <- function(fkeys, env){
+  instore <- ls(envir = env)
+  ss <- split(fkeys, names(fkeys) %in% instore)
+  pkgs <- lapply(setNames(nm = names(ss[['TRUE']])), get, envir = env)
+  pkgs <- c(pkgs, lapply(setNames(nm = names(ss[['FALSE']])), get))
+  pkgs <- pkgs[names(fkeys)]
+  res <- unlist(Map(function(x, y) { x %in% columns(y) }, x = fkeys, y = pkgs))
   if(!all(res))
     stop("some foreign keys are not present in their associated databases")
 }
@@ -259,8 +260,10 @@ makeOrganismPackage <- function(pkgname,
 ## version of this function is less agressive and doesn't try to load
 ## a file if it already exists.  This is a different behavior than we
 ## want for packaging where things should be more strict.
-.gentlyExtractDbFiles <- function(gd, deps){
+.gentlyExtractDbFiles <- function(gd, deps, env){
     pkgs <- unique(names(.extractPkgsAndCols(gd)))
+    not_pkg <- setdiff(ls(envir = env), deps)
+    pkgs <- pkgs[!pkgs %in% not_pkg]
     ## Before we can proceed, we may need to call library on the deps...
     .library <- function(dep){
         if(!exists(dep)){
@@ -286,8 +289,11 @@ makeOrganismPackage <- function(pkgname,
 ## The other big problem is that if my TxDb objects don't have a
 ## dbfile() then they can't be saved and re-loaded later.  But this
 ## problem is not "new" for this object.
-## Still TODO: 1) either put the assigned functions in a special env that is accesible to these objects OR else make a subclass that can hold those objects.
-## 2) make a save method that complains if any of the objects has not had saveDb called on it before calling a constructor.  And also add a warning to the constructor when somethings dbfile() is an empty string.
+## Still TODO: 1) either put the assigned functions in a special env that is
+## accesible to these objects OR else make a subclass that can hold those
+## objects. 2) make a save method that complains if any of the objects has not
+## had saveDb called on it before calling a constructor.  And also add a warning
+## to the constructor when somethings dbfile() is an empty string.
 
 ### Private environment for storing TxDb objects as needed (failed strategy)
 ## To work I would have to make the env public.  - It was never a
@@ -296,8 +302,13 @@ makeOrganismPackage <- function(pkgname,
 ## I may still want to go with the other option of stashing this data
 ## into a subclass...  For one thing, that option can't have name
 ## clashes...
-## Also: the name this local TxDb gets assigned to cannot be the same as is used by a package.  Otherwise a shortened 'custom' TxDb can be overwritten by a name clash with a package name...  This could end up being true even if I store the TxDb locally inside of a named sub-class.
-## Also also: the name should not be made 'special' in the case where makeOrganismDbFromTxDb is called as a helper function from within makeOrganismDbFromUCSC or makeOrganismDbFromBiomart.
+## Also: the name this local TxDb gets assigned to cannot be the same as is used
+## by a package.  Otherwise a shortened 'custom' TxDb can be overwritten by a
+## name clash with a package name...  This could end up being true even if I
+## store the TxDb locally inside of a named sub-class.
+## Also also: the name should not be made 'special' in the case where
+## makeOrganismDbFromTxDb is called as a helper function from within
+## makeOrganismDbFromUCSC or makeOrganismDbFromBiomart.
 
 makeOrganismDbFromTxDb <- function(txdb, keytype=NA, orgdb=NA){
     if (!is(txdb, "TxDb"))
@@ -307,30 +318,32 @@ makeOrganismDbFromTxDb <- function(txdb, keytype=NA, orgdb=NA){
     if (!isSingleStringOrNA(keytype))
         stop("'keytype' must be a single string or NA")
 
+    txdb_store <- new.env(parent = emptyenv())
     ## Then assign that object value to the appropriate name:
     txdbName <- makePackageName(txdb)
     ## We temp assign to global scope
     ## (b/c you need it there if you 'generated' it)
     ## After we can remove it? (will be stored in the object)
-    assign(txdbName, txdb, .GlobalEnv)
+    
+    assign(txdbName, txdb, envir = txdb_store)
     ## Then get the tax ID:
-    taxId <- taxonomyId(txdb)
+    taxId <- taxonomyId(txdb_store[[txdbName]])
 
     ## Then get the name and valued for the OrgDb object
     if (!is(orgdb, "OrgDb") && is.na(orgdb)){
         orgdbName <- OrganismDbi:::.taxIdToOrgDbName(taxId)
         orgdb <- OrganismDbi:::.taxIdToOrgDb(taxId)
-        assign(orgdbName, orgdb, .GlobalEnv)
+        assign(orgdbName, orgdb, envir = txdb_store)
     }else{
         org <- metadata(orgdb)[metadata(orgdb)$name=='ORGANISM',2]
         org <- sub(" ", "_", org)
         orgdbName <- paste0('org.',org,'.db')
         orgdb <- orgdb
-        assign(orgdbName, orgdb, .GlobalEnv)
+        assign(orgdbName, orgdb, envir = txdb_store)
     }
     ## get the primary key for the OrgDb object:
     if(is.na(keytype)){
-        geneKeyType <- chooseCentralOrgPkgSymbol(orgdb)
+        geneKeyType <- chooseCentralOrgPkgSymbol(txdb_store[[orgdbName]])
     }else{
         geneKeyType <- keytype
     }
@@ -341,7 +354,7 @@ makeOrganismDbFromTxDb <- function(txdb, keytype=NA, orgdb=NA){
                                        nm=c(orgdbName, txdbName)))
 
     ## get the organism
-    organism <- organism(txdb)
+    organism <- organism(txdb_store[[txdbName]])
 
     #############################################################
     ## Process and then test the graph Data
@@ -350,10 +363,10 @@ makeOrganismDbFromTxDb <- function(txdb, keytype=NA, orgdb=NA){
     allDeps <- unique(as.vector(gd[,1:2]))
     biocPkgNames <- OrganismDbi:::.biocAnnPackages()
     deps <- allDeps[allDeps %in% biocPkgNames]
-    resources <- OrganismDbi:::.gentlyExtractDbFiles(gd, deps)
+    resources <- OrganismDbi:::.gentlyExtractDbFiles(gd, deps, txdb_store)
     ## Check that the fkeys are really columns for the graphData
     fkeys <- OrganismDbi:::.extractPkgsAndCols(gd)
-    OrganismDbi:::.testKeys(fkeys)
+    OrganismDbi:::.testKeys(fkeys, env = txdb_store)
     ## Then make the object:
     graphInfo <- list(graphData=gd, resources=resources)
     OrganismDbi:::OrganismDb(graphInfo=graphInfo)
