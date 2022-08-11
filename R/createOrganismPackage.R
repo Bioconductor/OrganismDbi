@@ -272,7 +272,9 @@ makeOrganismPackage <- function(pkgname,
     }
     lapply(deps, .library)
     files <- unlist(lapply(pkgs, function(x){dbfile(get(x))}))
-    setNames(files, pkgs)
+    if (length(not_pkg))
+        files <- c(files, rep("", times = length(not_pkg)))
+    setNames(files, c(pkgs, not_pkg))
 }
 
 
