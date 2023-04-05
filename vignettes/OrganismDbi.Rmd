@@ -13,19 +13,22 @@ vignette: >
     %\VignetteKeywords{OrganismDbi}
     %\VignettePackage{OrganismDbi}
 output:
-  BiocStyle::html_document
+  BiocStyle::html_document:
+  numbered_sections: true
+  toc: true
+  toc_depth: 4
 ---
 
-`r Biocpkg("OrganismDbi")` is a software package that helps tie together different an- notation
-resources. It is expected that users may have previously made or seen packages like
-`r Biocpkg("org.Hs.eg.db")` and 
-`r Biocpkg("TxDb.Hsapiens.UCSC.hg19.knownGene")`. Packages like these two are
-very different and contain very different kinds of information, but are still
-about the same organism: Homo sapiens. The `r Biocpkg("OrganismDbi")` package allows us to
-combine resources like these together into a single package resource, which can
-represent ALL of these resources at the same time. An example of this is the
-`r Biocpkg("Homo.sapiens")` package, which combines access to the two resources above along
-with others. 
+`r Biocpkg("OrganismDbi")` is a software package that helps tie together
+different annotation resources. It is expected that users may have previously
+made or seen packages like `r Biocpkg("org.Hs.eg.db")` and 
+`r Biocpkg("TxDb.Hsapiens.UCSC.hg19.knownGene")`. Packages like these two are very
+different and contain very different kinds of information, but are still about
+the same organism: Homo sapiens. The `r Biocpkg("OrganismDbi")` package allows
+us to combine resources like these together into a single package resource,
+which can represent ALL of these resources at the same time. An example of this
+is the `r Biocpkg("Homo.sapiens")` package, which combines access to the two
+resources above along with others.
 
 This is made possible because the packages that are represented by 
 `r Biocpkg("Homo.sapiens")`
@@ -40,9 +43,10 @@ knitr::include_graphics("relationships-between-annotation-packages.png")
 Usage of a package like this has been deliberately kept very simple. The methods
 supported are the same ones that work for all the packages based on
 *AnnotationDb* objects. The methods that can be applied to these new packages
-are `columns`, `keys`, `keytypes` and `select`. So to learn which kinds of data
-can be retrieved from a package like this we would simply load the package and
-then call the `columns` method.
+are `columns`, `keys`, `keytypes` and `select`. 
+
+So to learn which kinds of data can be retrieved from a package like this we
+would simply load the package and then call the `columns` method.
 
 ```{r columns, message = FALSE, warning = FALSE}
 library(Homo.sapiens)
@@ -57,16 +61,16 @@ keytypes(Homo.sapiens)
 ```
 
 To extract specific keys, we need to use the `keys` method, and also provide it
-a legitimate *keytype*:
+a legitimate keytype:
 
 ```{r keys2, message = FALSE, warning = FALSE}
 head(keys(Homo.sapiens, keytype = "ENTREZID"))
 ```
 
-And to extract data, we can use the `select` method. The `select` method depends
+And to extract data, we can use the `select` method. The select method depends
 on the values from the previous three methods to specify what it will extract.
 Here is an example that will extract, UCSC transcript names, and gene symbols
-using *Entrez Gene IDs* as `keys`.
+using Entrez Gene IDs as keys.
 
 ```{r select, message = FALSE, warning = FALSE}
 k <- head(keys(Homo.sapiens, keytype = "ENTREZID"), n = 3)
@@ -78,7 +82,7 @@ select(
 )
 ```
 
-In Addition to `select`, some of the more popular range based methods have also
+In addition to `select`, some of the more popular range based methods have also
 been updated to work with an *AnnotationDb* object. So for example you could
 extract transcript information like this:
 
@@ -157,7 +161,7 @@ gd <- list(
 )
 ```
 
-So this data.frame indicates both which packages are connected to each other,
+So this `data.frame` indicates both which packages are connected to each other,
 and also what these connections are using for foreign keys. Once this is
 finished, we just have to call the `r Biocpkg("makeOrganism")` package function
 to finish the task.
@@ -180,6 +184,6 @@ makeOrganismPackage(
 `r Biocpkg("makeOrganism")` package will then generate a lightweight package
 that you can install. This package will not contain all the data that it refers
 to, but will instead depend on the packages that were referred to in the
-data.frame. Because the end result will be a package that treats all the data
+`data.frame`. Because the end result will be a package that treats all the data
 mapped together as a single source, the user is encouraged to take extra care to
 ensure that the different packages used are from the same build etc.
