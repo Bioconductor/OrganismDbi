@@ -22,7 +22,8 @@ output:
 `r Biocpkg("OrganismDbi")` is a software package that helps tie together
 different annotation resources. It is expected that users may have previously
 made or seen packages like `r Biocpkg("org.Hs.eg.db")` and 
-`r Biocpkg("TxDb.Hsapiens.UCSC.hg19.knownGene")`. Packages like these two are very
+`r Biocpkg("TxDb.Hsapiens.UCSC.hg19.knownGene")`. Packages like these two are
+very
 different and contain very different kinds of information, but are still about
 the same organism: Homo sapiens. The `r Biocpkg("OrganismDbi")` package allows
 us to combine resources like these together into a single package resource,
