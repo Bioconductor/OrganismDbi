@@ -22,18 +22,16 @@ output:
 `r Biocpkg("OrganismDbi")` is a software package that helps tie together
 different annotation resources. It is expected that users may have previously
 made or seen packages like `r Biocpkg("org.Hs.eg.db")` and 
-`r Biocpkg("TxDb.Hsapiens.UCSC.hg19.knownGene")`. Packages like these two are
-very
-different and contain very different kinds of information, but are still about
-the same organism: Homo sapiens. The `r Biocpkg("OrganismDbi")` package allows
-us to combine resources like these together into a single package resource,
-which can represent ALL of these resources at the same time. An example of this
-is the `r Biocpkg("Homo.sapiens")` package, which combines access to the two
-resources above along with others.
+`r Biocpkg("TxDb.Hsapiens.UCSC.hg19.knownGene")`. Packages like these two are 
+very different and contain very different kinds of information, but are still 
+about the same organism: Homo sapiens. The `r Biocpkg("OrganismDbi")` package 
+allows us to combine resources like these together into a single package 
+resource, which can represent ALL of these resources at the same time. An 
+example of this is the `r Biocpkg("Homo.sapiens")` package, which combines 
+access to the two resources above along with others.
 
 This is made possible because the packages that are represented by 
-`r Biocpkg("Homo.sapiens")`
-are related to each other via foreign keys.
+`r Biocpkg("Homo.sapiens")` are related to each other via foreign keys.
 
 ```{r figure, fig.cap = "Relationships between Annotation packages", echo = FALSE}
 knitr::include_graphics("relationships-between-annotation-packages.png")
@@ -106,14 +104,12 @@ transcriptsBy(Homo.sapiens,
 
 #   Making your own OrganismDbi packages
 
-So in the preceding section you can see that using an 
-`r Biocpkg("OrganismDbi")`
-package behaves very similarly to how you might use a `r Biocpkg("TxDb")` or an
-`r Biocpkg("OrgDb")` package. The same methods are defined, and they behave
-similarly except that they now have access to much more data than before. But
-before you make your own `r Biocpkg("OrganismDbi")` package you need to
-understand that there are few logical limitations for what can be included in
-this kind of package.
+So in the preceding section you can see that using an `r Biocpkg("OrganismDbi")`
+package behaves very similarly to how you might use a `TxDb` or an `OrgDb`
+package. The same methods are defined, and they behave similarly except that
+they now have access to much more data than before. But before you make your own
+`r Biocpkg("OrganismDbi")` package you need to understand that there are few
+logical limitations for what can be included in this kind of package.
 
 * The 1st limitation is that all the annotation resources in question must
 have implemented the four methods described in the preceding section (`columns`,
@@ -126,7 +122,7 @@ supporting packages.
 
 * The 3rd limitation is that you cannot have more than one example of
 each object type represented. So you cannot have two org packages since that
-would introduce two `r Biocpkg("OrgDb")` objects.
+would introduce two `OrgDb` objects.
 
 * And the 4th limitation is that you cannot have cycles in the graph.
 What this means is that there will be a graph that represents the relationships
@@ -164,7 +160,7 @@ gd <- list(
 
 So this `data.frame` indicates both which packages are connected to each other,
 and also what these connections are using for foreign keys. Once this is
-finished, we just have to call the `r Biocpkg("makeOrganism")` package function
+finished, we just have to call the `makeOrganism` package function
 to finish the task.
 
 ```{r makeOrganismPackage, eval = FALSE}
@@ -182,7 +178,7 @@ makeOrganismPackage(
 )
 ```
 
-`r Biocpkg("makeOrganism")` package will then generate a lightweight package
+`makeOrganism` package will then generate a lightweight package
 that you can install. This package will not contain all the data that it refers
 to, but will instead depend on the packages that were referred to in the
 `data.frame`. Because the end result will be a package that treats all the data
