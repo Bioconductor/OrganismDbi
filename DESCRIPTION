@@ -12,8 +12,9 @@ Authors@R: c(
 	person("Hervé", "Pagès", role = "aut"), 
 	person("Martin", "Morgan", role = "aut"), 
 	person("Valerie", "Obenchain", role = "aut"), 
-    person("Aliyu Atiku Mustapha", role = "ctb",
-        comment = "Converted 'OrganismDbi' vignette from Sweave to RMarkdown / HTML."
+    	person("Aliyu Atiku Mustapha", role = "ctb",
+        comment = "Converted 'OrganismDbi' vignette from Sweave to 
+	RMarkdown / HTML."
     ),
     person("Bioconductor Package Maintainer",
         role = "cre",
@@ -25,7 +26,8 @@ Imports: Biobase, BiocManager, GenomicRanges (>= 1.31.13), graph,
         IRanges, RBGL, DBI, S4Vectors (>= 0.9.25), stats
 Suggests: Homo.sapiens, Rattus.norvegicus,
         BSgenome.Hsapiens.UCSC.hg19, AnnotationHub, FDb.UCSC.tRNAs,
-        mirbase.db, rtracklayer, biomaRt, RUnit, RMariaDB, BiocStyle, knitr
+        mirbase.db, rtracklayer, biomaRt, RUnit, RMariaDB, BiocStyle, 
+	knitr
 Collate: AllGenerics.R AllClasses.R methods-select.R
         methods-transcripts.R createOrganismPackage.R seqinfo.R
         test_OrganismDbi_package.R
